@@ -165,19 +165,19 @@ public class VersionCheckUtil extends SoapCLI {
 	   			);
 	    	}
     	} catch (SoapFaultException soape) {
-    		System.out.println("Cought SoapFaultException");
+    		System.out.println("Caught SoapFaultException");
     		System.out.println(soape.getStackTrace().toString());
     		throw (soape);
     	}  catch (LmcSoapClientException lmce) {
-    		System.out.println("Cought LmcSoapClientException");
+    		System.out.println("Caught LmcSoapClientException");
     		System.out.println(lmce.getStackTrace().toString());
     		throw (lmce);
     	} catch (ServiceException se) {
-    		System.out.println("Cought ServiceException");
+    		System.out.println("Caught ServiceException");
     		System.out.println(se.getStackTrace().toString());
     		throw (se);
     	} catch (IOException ioe) {
-    		System.out.println("Cought IOException");
+    		System.out.println("Caught IOException");
     		System.out.println(ioe.getStackTrace().toString());
     		throw (ioe);
     	}
