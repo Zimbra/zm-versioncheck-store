@@ -40,6 +40,7 @@ import com.zimbra.cs.client.LmcSession;
 import com.zimbra.cs.client.soap.LmcSoapClientException;
 import com.zimbra.cs.client.soap.LmcVersionCheckRequest;
 import com.zimbra.cs.client.soap.LmcVersionCheckResponse;
+import com.zimbra.cs.ldap.LdapDateUtil;
 import com.zimbra.cs.util.BuildInfo;
 import com.zimbra.cs.util.SoapCLI;
 /**
@@ -81,44 +82,44 @@ public class VersionCheckUtil extends SoapCLI {
             }
 
             if (cl.hasOption(OPT_CHECK_VERSION) || cl.hasOption(OPT_MANUAL_CHECK_VERSION)) {
-            	//check schedule
-        		Provisioning prov = Provisioning.getInstance();
-        		Config config;
-        		config = prov.getConfig();
-            	String updaterServerId = config.getAttr(Provisioning.A_zimbraVersionCheckServer);
+                //check schedule
+                Provisioning prov = Provisioning.getInstance();
+                Config config;
+                config = prov.getConfig();
+                String updaterServerId = config.getAttr(Provisioning.A_zimbraVersionCheckServer);
 
                 if (updaterServerId != null) {
                     Server server = prov.get(Key.ServerBy.id, updaterServerId);
                     if (server != null) {
-                    	Server localServer = prov.getLocalServer();
-                    	if (localServer!=null) {
-                    		if(!localServer.getId().equalsIgnoreCase(server.getId())) {
-                    			System.out.println("Wrong server");
-                    			System.exit(0);
-                    		}
-                    	}
+                        Server localServer = prov.getLocalServer();
+                        if (localServer!=null) {
+                            if(!localServer.getId().equalsIgnoreCase(server.getId())) {
+                                System.out.println("Wrong server");
+                                System.exit(0);
+                            }
+                        }
                     }
                 }
-        		String versionInterval = config.getAttr(Provisioning.A_zimbraVersionCheckInterval);
-        		if (cl.hasOption(OPT_CHECK_VERSION) && (versionInterval == null || versionInterval.length()==0 || versionInterval.equalsIgnoreCase("0"))) {
-        			System.out.println("Automatic updates are disabled");
-        			System.exit(0);
-        		} else {
-        			long checkInterval = DateUtil.getTimeIntervalSecs(versionInterval,0);
-        			String lastAttempt = config.getAttr(Provisioning.A_zimbraVersionCheckLastAttempt);
-        			if(lastAttempt != null) {
-        				Date lastChecked = DateUtil.parseGeneralizedTime(config.getAttr(Provisioning.A_zimbraVersionCheckLastAttempt));
-        				Date now = new Date();
-        				if	(now.getTime()/1000- lastChecked.getTime()/1000 >= checkInterval) {
-        					util.doVersionCheck();
-        				} else {
-        					System.out.println("Too early");
-        					System.exit(0);
-        				}
-        			} else {
-        				util.doVersionCheck();
-        			}
-        		}
+                String versionInterval = config.getAttr(Provisioning.A_zimbraVersionCheckInterval);
+                if (cl.hasOption(OPT_CHECK_VERSION) && (versionInterval == null || versionInterval.length()==0 || versionInterval.equalsIgnoreCase("0"))) {
+                    System.out.println("Automatic updates are disabled");
+                    System.exit(0);
+                } else {
+                    long checkInterval = DateUtil.getTimeIntervalSecs(versionInterval,0);
+                    String lastAttempt = config.getAttr(Provisioning.A_zimbraVersionCheckLastAttempt);
+                    if(lastAttempt != null) {
+                        Date lastChecked = LdapDateUtil.parseGeneralizedTime(config.getAttr(Provisioning.A_zimbraVersionCheckLastAttempt));
+                        Date now = new Date();
+                        if	(now.getTime()/1000- lastChecked.getTime()/1000 >= checkInterval) {
+                            util.doVersionCheck();
+                        } else {
+                            System.out.println("Too early");
+                            System.exit(0);
+                        }
+                    } else {
+                        util.doVersionCheck();
+                    }
+                }
             } else if (cl.hasOption(SHOW_LAST_STATUS)) {
                 util.doResult();
                 System.exit(0);
@@ -143,44 +144,44 @@ public class VersionCheckUtil extends SoapCLI {
     }
 
     private void doResult() throws SoapFaultException, IOException, ServiceException, LmcSoapClientException {
-    	try {
-	    	LmcSession session = auth();
-	        LmcVersionCheckRequest req = new LmcVersionCheckRequest();
-	        req.setAction(AdminConstants.VERSION_CHECK_STATUS);
-	        req.setSession(session);
-	        LmcVersionCheckResponse res = (LmcVersionCheckResponse) req.invoke(getServerUrl());
-	    	List <VersionUpdate> updates = res.getUpdates();
+        try {
+            LmcSession session = auth();
+            LmcVersionCheckRequest req = new LmcVersionCheckRequest();
+            req.setAction(AdminConstants.VERSION_CHECK_STATUS);
+            req.setSession(session);
+            LmcVersionCheckResponse res = (LmcVersionCheckResponse) req.invoke(getServerUrl());
+            List <VersionUpdate> updates = res.getUpdates();
 
-	    	for(Iterator <VersionUpdate> iter = updates.iterator();iter.hasNext();){
-	    		VersionUpdate update = iter.next();
-	    		String critical;
-	    		if(update.isCritical()) {
-	    			critical = "critical";
-	    		} else {
-	    			critical = "not critical";
-	    		}
-	    		System.out.println(
-	    				String.format("Found a %s update. Update is %s . Update version: %s. For more info visit: %s",
-	    						update.getType(),critical,update.getVersion(),update.getUpdateURL())
-	   			);
-	    	}
-    	} catch (SoapFaultException soape) {
-    		System.out.println("Caught SoapFaultException");
-    		System.out.println(soape.getStackTrace().toString());
-    		throw (soape);
-    	}  catch (LmcSoapClientException lmce) {
-    		System.out.println("Caught LmcSoapClientException");
-    		System.out.println(lmce.getStackTrace().toString());
-    		throw (lmce);
-    	} catch (ServiceException se) {
-    		System.out.println("Caught ServiceException");
-    		System.out.println(se.getStackTrace().toString());
-    		throw (se);
-    	} catch (IOException ioe) {
-    		System.out.println("Caught IOException");
-    		System.out.println(ioe.getStackTrace().toString());
-    		throw (ioe);
-    	}
+            for(Iterator <VersionUpdate> iter = updates.iterator();iter.hasNext();){
+                VersionUpdate update = iter.next();
+                String critical;
+                if(update.isCritical()) {
+                    critical = "critical";
+                } else {
+                    critical = "not critical";
+                }
+                System.out.println(
+                        String.format("Found a %s update. Update is %s . Update version: %s. For more info visit: %s",
+                                update.getType(),critical,update.getVersion(),update.getUpdateURL())
+                   );
+            }
+        } catch (SoapFaultException soape) {
+            System.out.println("Caught SoapFaultException");
+            System.out.println(soape.getStackTrace().toString());
+            throw (soape);
+        }  catch (LmcSoapClientException lmce) {
+            System.out.println("Caught LmcSoapClientException");
+            System.out.println(lmce.getStackTrace().toString());
+            throw (lmce);
+        } catch (ServiceException se) {
+            System.out.println("Caught ServiceException");
+            System.out.println(se.getStackTrace().toString());
+            throw (se);
+        } catch (IOException ioe) {
+            System.out.println("Caught IOException");
+            System.out.println(ioe.getStackTrace().toString());
+            throw (ioe);
+        }
     }
 
     @Override
