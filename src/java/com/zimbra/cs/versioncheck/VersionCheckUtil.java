@@ -152,36 +152,36 @@ public class VersionCheckUtil extends SoapCLI {
             LmcVersionCheckResponse res = (LmcVersionCheckResponse) req.invoke(getServerUrl());
             List <VersionUpdate> updates = res.getUpdates();
 
-	    	for(Iterator <VersionUpdate> iter = updates.iterator();iter.hasNext();){
-	    		VersionUpdate update = iter.next();
-	    		String critical;
-	    		if(update.isCritical()) {
-	    			critical = "critical";
-	    		} else {
-	    			critical = "not critical";
-	    		}
-	    		System.out.println(
-	    				String.format("Found a %s update. Update is %s . Update version: %s. For more info visit: %s",
-	    						update.getType(),critical,update.getVersion(),update.getUpdateURL())
-	   			);
-	    	}
-    	} catch (SoapFaultException soape) {
-    		System.out.println("Caught SoapFaultException");
-    		System.out.println(soape.getStackTrace().toString());
-    		throw (soape);
-    	}  catch (LmcSoapClientException lmce) {
-    		System.out.println("Caught LmcSoapClientException");
-    		System.out.println(lmce.getStackTrace().toString());
-    		throw (lmce);
-    	} catch (ServiceException se) {
-    		System.out.println("Caught ServiceException");
-    		System.out.println(se.getStackTrace().toString());
-    		throw (se);
-    	} catch (IOException ioe) {
-    		System.out.println("Caught IOException");
-    		System.out.println(ioe.getStackTrace().toString());
-    		throw (ioe);
-    	}
+            for(Iterator <VersionUpdate> iter = updates.iterator();iter.hasNext();){
+                VersionUpdate update = iter.next();
+                String critical;
+                if(update.isCritical()) {
+                    critical = "critical";
+                } else {
+                    critical = "not critical";
+                }
+                System.out.println(
+                        String.format("Found a %s update. Update is %s . Update version: %s. For more info visit: %s",
+                                update.getType(),critical,update.getVersion(),update.getUpdateURL())
+                   );
+            }
+        } catch (SoapFaultException soape) {
+            System.out.println("Caught SoapFaultException");
+            System.out.println(soape.getStackTrace().toString());
+            throw (soape);
+        }  catch (LmcSoapClientException lmce) {
+            System.out.println("Caught LmcSoapClientException");
+            System.out.println(lmce.getStackTrace().toString());
+            throw (lmce);
+        } catch (ServiceException se) {
+            System.out.println("Caught ServiceException");
+            System.out.println(se.getStackTrace().toString());
+            throw (se);
+        } catch (IOException ioe) {
+            System.out.println("Caught IOException");
+            System.out.println(ioe.getStackTrace().toString());
+            throw (ioe);
+        }
     }
 
     @Override
