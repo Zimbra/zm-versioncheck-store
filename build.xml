@@ -8,7 +8,8 @@
   <property name="extension.dist.dir" location="${dist.lib.ext.dir}/${ext.name}"/>
   <property name="jar.file" value="${ext.name}.jar"/>
   <property name="extension.deploy.dir" location="${zimbra.home.dir}/lib/ext/${ext.name}"/>
-  <!-- Targets -->
+
+  <!-- build-init -->
   <target name="build-init">
     <mkdir dir="${build.classes.dir}"/>
     <mkdir dir="${dist.dir}"/>
@@ -16,13 +17,10 @@
     <mkdir dir="${dist.lib.ext.dir}"/>
     <mkdir dir="${extension.dist.dir}"/>
   </target>
+
+  <!-- deploy -->
   <target name="deploy" depends="deploy-server-extension" description="Deploy the extension" />
-  <target name="jar" depends="compile" description="Creates the jar file">
-    <antcall target="zimbra-jar">
-      <param name="implementation.title" value="${ext.name}" />
-      <param name="zimbra.extension.class" value="com.zimbra.cs.versioncheck.VersionCheckExtension" />
-    </antcall>
-  </target>
+
   <target name="deploy-server-extension" depends="jar" description="Deploy the extension">
     <ant dir="${server.dir}" target="stop-webserver" inheritAll="false"/>
     <copy todir="${extension.deploy.dir}">
@@ -30,10 +28,19 @@
     </copy>
     <ant dir="${server.dir}" target="start-webserver" inheritAll="false"/>
   </target>
+
   <!-- dist -->
   <target name="dist" depends="jar" description="Copies jar to dist dir">
     <copy todir="${extension.dist.dir}">
       <fileset dir="${build.dir}" includes="${jar.file}" />
     </copy>
+  </target>
+
+  <!-- jar -->
+  <target name="jar" depends="compile" description="Creates the jar file">
+    <antcall target="zimbra-jar">
+      <param name="implementation.title" value="${ext.name}" />
+      <param name="zimbra.extension.class" value="com.zimbra.cs.versioncheck.VersionCheckExtension" />
+    </antcall>
   </target>
 </project>
