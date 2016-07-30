@@ -1,12 +1,9 @@
 <?xml version="1.0"?>
-<project name="ZimbraAdminVersionCheck" default="deploy">
+<project name="zm-versioncheck-store" default="deploy">
   <import file="../zm-zcs/ant-global.xml" />
   <!-- Properties -->
   <property name="ext.name" value="zimbraadminversioncheck" />
-  <property name="dist.lib.dir" location="${dist.dir}/lib"/>
-  <property name="dist.lib.ext.dir" location="${dist.lib.dir}/ext"/>
   <property name="extension.dist.dir" location="${dist.lib.ext.dir}/${ext.name}"/>
-  <property name="jar.file" value="${ext.name}.jar"/>
   <property name="extension.deploy.dir" location="${zimbra.home.dir}/lib/ext/${ext.name}"/>
 
   <!-- build-init -->
@@ -18,11 +15,17 @@
     <mkdir dir="${extension.dist.dir}"/>
   </target>
 
-  <!-- deploy -->
-  <target name="deploy" depends="deploy-server-extension" description="Deploy the extension" />
-
-  <target name="deploy-server-extension" depends="jar" description="Deploy the extension">
+  <!-- deploy/undeploy -->
+  <target name="undeploy">
     <ant dir="${server.dir}" target="stop-webserver" inheritAll="false"/>
+    <delete dir="${extension.deploy.dir}" verbose="true"/>
+    <ant dir="${server.dir}" target="start-webserver" inheritAll="false"/>
+  </target>
+
+  <target name="deploy" depends="jar,set-dev-version" description="Deploy the extension">
+    <ant dir="${server.dir}" target="stop-webserver" inheritAll="false"/>
+    <delete dir="${extension.deploy.dir}" verbose="true"/>
+	<mkdir dir="${extension.deploy.dir}"/>
     <copy todir="${extension.deploy.dir}">
       <fileset dir="${build.dir}" includes="${jar.file}" />
     </copy>
