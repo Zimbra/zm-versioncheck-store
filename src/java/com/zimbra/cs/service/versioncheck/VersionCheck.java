@@ -17,6 +17,8 @@
 package com.zimbra.cs.service.versioncheck;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -24,11 +26,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.URIException;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.util.URIUtil;
+import org.apache.http.HttpException;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.HttpClientBuilder;
 
 import com.zimbra.client.ZEmailAddress;
 import com.zimbra.client.ZMailbox;
@@ -42,6 +43,7 @@ import com.zimbra.common.soap.AdminConstants;
 import com.zimbra.common.soap.Element;
 import com.zimbra.common.soap.MailConstants;
 import com.zimbra.common.soap.XmlParseException;
+import com.zimbra.common.util.ByteUtil;
 import com.zimbra.common.util.StringUtil;
 import com.zimbra.common.util.ZimbraLog;
 import com.zimbra.cs.account.Account;
@@ -267,8 +269,8 @@ public class VersionCheck extends AdminDocumentHandler {
         Provisioning prov = Provisioning.getInstance();
         Config config = prov.getConfig();
         String url = config.getAttr(Provisioning.A_zimbraVersionCheckURL);
-        GetMethod method = new GetMethod(url);
-        HttpClient client = new HttpClient( );
+        HttpGet getMethod = new HttpGet(url);
+        HttpClientBuilder client = HttpClientBuilder.create();
         boolean checkSuccess=false;
         String resp = null;
         String query = String.format("%s=%s&%s=%s&%s=%s&%s=%s&%s=%s&%s=%s",
@@ -283,9 +285,10 @@ public class VersionCheck extends AdminDocumentHandler {
 
         try {
             ZimbraLog.extensions.debug("Sending version check query %s", query);
-            method.setQueryString(URIUtil.encodeQuery(query));
-            client.executeMethod( method );
-            resp = method.getResponseBodyAsString();
+            getMethod.setURI(new URL(query).toURI());
+            CloseableHttpResponse response = client.build().execute(getMethod);
+            resp = new String(ByteUtil.getContent(response.getEntity().getContent(), -1));
+
             if(!StringUtil.isNullOrEmpty(resp)) {
                 checkSuccess = true;
             } else {
@@ -302,12 +305,10 @@ public class VersionCheck extends AdminDocumentHandler {
  * </updates>
  * </versionCheck>
  **/
-        } catch (URIException e) {
-            throw ServiceException.FAILURE("Failed to create query string for version check.",e);
-        } catch (HttpException e) {
-            throw ServiceException.FAILURE("Failed to send HTTP request to version check script.",e);
         } catch (IOException e) {
             throw ServiceException.FAILURE("Failed to send HTTP request to version check script.",e);
+        } catch (URISyntaxException e) {
+            throw ServiceException.FAILURE("Failed to create query string for version check.",e);
         }  finally {
             Map<String, String> attrs = new HashMap<String, String>();
             attrs.put(Provisioning.A_zimbraVersionCheckLastAttempt, lastAttempt);
