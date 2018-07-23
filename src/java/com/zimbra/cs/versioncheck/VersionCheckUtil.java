@@ -24,6 +24,7 @@ import java.util.List;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.http.HttpException;
 
 import com.zimbra.common.account.Key;
 import com.zimbra.common.service.ServiceException;
@@ -135,7 +136,7 @@ public class VersionCheckUtil extends SoapCLI {
         }
     }
 
-    private void doVersionCheck() throws SoapFaultException, IOException, ServiceException, LmcSoapClientException {
+    private void doVersionCheck() throws SoapFaultException, IOException, ServiceException, LmcSoapClientException, HttpException {
         LmcSession session = auth();
         LmcVersionCheckRequest req = new LmcVersionCheckRequest();
         req.setAction(AdminConstants.VERSION_CHECK_CHECK);
@@ -143,7 +144,7 @@ public class VersionCheckUtil extends SoapCLI {
         req.invoke(getServerUrl());
     }
 
-    private void doResult() throws SoapFaultException, IOException, ServiceException, LmcSoapClientException {
+    private void doResult() throws SoapFaultException, IOException, ServiceException, LmcSoapClientException, HttpException {
         try {
             LmcSession session = auth();
             LmcVersionCheckRequest req = new LmcVersionCheckRequest();
