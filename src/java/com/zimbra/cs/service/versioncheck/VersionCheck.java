@@ -17,8 +17,8 @@
 package com.zimbra.cs.service.versioncheck;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -26,9 +26,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.http.HttpException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.HttpClientBuilder;
 
 import com.zimbra.client.ZEmailAddress;
@@ -269,23 +269,24 @@ public class VersionCheck extends AdminDocumentHandler {
         Provisioning prov = Provisioning.getInstance();
         Config config = prov.getConfig();
         String url = config.getAttr(Provisioning.A_zimbraVersionCheckURL);
-        HttpGet getMethod = new HttpGet(url);
+
         HttpClientBuilder client = HttpClientBuilder.create();
         boolean checkSuccess=false;
         String resp = null;
-        String query = String.format("%s=%s&%s=%s&%s=%s&%s=%s&%s=%s&%s=%s",
-                AdminConstants.A_VERSION_INFO_MAJOR,BuildInfo.MAJORVERSION,
-                AdminConstants.A_VERSION_INFO_MINOR,BuildInfo.MINORVERSION,
-                AdminConstants.A_VERSION_INFO_MICRO,BuildInfo.MICROVERSION,
-                AdminConstants.A_VERSION_INFO_PLATFORM,BuildInfo.PLATFORM,
-                AdminConstants.A_VERSION_INFO_TYPE,
-                (StringUtil.isNullOrEmpty(BuildInfo.TYPE) ? "unknown" : BuildInfo.TYPE),
-                AdminConstants.A_VERSION_INFO_BUILDNUM, BuildInfo.BUILDNUM
-                );
+
 
         try {
-            ZimbraLog.extensions.debug("Sending version check query %s", query);
-            getMethod.setURI(new URL(query).toURI());
+            URIBuilder uriBuilder = new URIBuilder(new URI(url));
+            uriBuilder.addParameter(AdminConstants.A_VERSION_INFO_MAJOR,BuildInfo.MAJORVERSION);
+            uriBuilder.addParameter(AdminConstants.A_VERSION_INFO_MINOR,BuildInfo.MINORVERSION);
+            uriBuilder.addParameter(AdminConstants.A_VERSION_INFO_MICRO,BuildInfo.MICROVERSION);
+            uriBuilder.addParameter(AdminConstants.A_VERSION_INFO_PLATFORM,BuildInfo.PLATFORM);
+            uriBuilder.addParameter( AdminConstants.A_VERSION_INFO_TYPE,
+                (StringUtil.isNullOrEmpty(BuildInfo.TYPE) ? "unknown" : BuildInfo.TYPE));
+            uriBuilder.addParameter( AdminConstants.A_VERSION_INFO_BUILDNUM, BuildInfo.BUILDNUM);
+            HttpGet getMethod = new HttpGet( uriBuilder.build());
+            ZimbraLog.extensions.debug("Sending version check query %s",
+                uriBuilder.build().toString());
             CloseableHttpResponse response = client.build().execute(getMethod);
             resp = new String(ByteUtil.getContent(response.getEntity().getContent(), -1));
 
